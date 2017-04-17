@@ -1,0 +1,214 @@
+---
+title: "lesson3"
+author: "Sumit Kant"
+date: "5 September 2016"
+output: html_document
+---
+# Psuedo Facebook Data
+THe goal here is to understand user behaviour and demographics of the facebook users. This data is similar to what data scientist at facebook use on a daily basis.
+
+# Reading in Data
+```{r}
+getwd()
+list.files()
+setwd('D:/IIML/Crisp Analytics/Udacity/DAta analysis with R/')
+```
+## loading a tab separated file
+```{r}
+
+pf <- read.csv('pseudo_facebook.tsv', sep="\t")
+# To check out the variable names
+names(pf)
+```
+
+## Histogram of users' Birthdays
+
+```{r}
+library(ggplot2)
+theme_set(theme_minimal(16)) 
+
+qplot(x = dob_day, data=pf)
+qplot(x = dob_day, data=pf) +
+  scale_x_continuous( breaks = 1:31) +
+  facet_wrap(~dob_month, ncol=3)
+```
+facet_wrap allows plotting graphs along one variable and visualize the difference across other variables
+facet_grid is similar to facet_wrap as it can take two variables instead of one as an input
+
+## Friend Count
+```{r}
+qplot(friend_count, data = pf) + geom_histogram()
+```
+This data is positively skewed and is called long tailed data.
+The number of facebook friends a user has are less than 500 for most of the data.
+
+### To limit the axes using xlim parameter
+xlim uses starting point and ending point to wrap the data.
+
+```{r}
+qplot(friend_count, data = pf, xlim = c(0,1000))
+```
+Alternatively, we can also use scale_x_continuous to limit the data.
+```{r}
+qplot(friend_count, data = pf) +
+  scale_x_continuous(limits = c(0,1000))
+```
+This allows us to make the plots in layers
+
+## Adjusting the bin widthi
+```{r}
+qplot(friend_count, data = pf, binwidth = 25) +
+  scale_x_continuous(limits = c(0,1000), breaks = seq(0,1000,100)) 
+```
+## Question: Which gender group has more friends, men or women?
+TO answer this we need to split the histogram into two parts
+Once again we can use facet_wrap and wrap by variable 'gender'
+```{r}
+qplot(friend_count, data = pf, binwidth = 25) +
+  scale_x_continuous(limits = c(0,1000), breaks = seq(0,1000,100)) +
+  facet_wrap(~gender)
+```
+The plot shows that the number of friends for male are higher for males than females.
+
+***Problem***
+
+Also plotting NA values in the gender. 
+
+***SOlution***
+
+Subset the data and remove NA values
+```{r}
+qplot(friend_count, data = subset(pf, !(is.na(gender))), binwidth = 10) +
+  scale_x_continuous(limits = c(0,1000), breaks = seq(0,1000,100)) +
+  facet_wrap(~gender)
+```
+
+## Statistics by 'Gender'
+```{r}
+table(pf$gender)
+by(pf$friend_count, pf$gender, summary)
+```
+Gives the summary statisics based on gender. The median is higher for females and the difference is 22. Also, the mean is greater for females than males
+
+## Tenure
+```{r}
+qplot(x = tenure, data = pf, binwidth = 30, color = I('#1e1d1d'), fill=I('#047697'))
+```
+***Tenure in Years***
+```{r}
+qplot(x = tenure/365, data = pf, binwidth = 0.25, color = I('#1e1d1d'), fill=I('#F79420')) +
+  scale_x_continuous(breaks = seq(1,7,1), limits = c(0,7)) +
+  xlab('Number of years using Facebook') + 
+  ylab('Number of users in sample')
+```
+## User ages
+Histogram of users based on their age
+```{r}
+qplot(x = age, data = pf, binwidth = 1, color = I('#1e1d1d'), fill=I('#2ecc71')) +
+  scale_x_continuous(breaks = seq(10,max(pf$age),5), limits = c(min(pf$age),max(pf$age))) +
+  xlab('Age of users') + 
+  ylab('Number of users in sample')
+```
+
+## Transforming data
+```{r}
+
+
+qplot(x=friend_count, data = pf)
+summary(pf$friend_count)
+summary(log10(pf$friend_count+1))
+
+library(gridExtra)
+p1 <- qplot(x = friend_count, data = pf, binwidth = 100, color = I('#1e1d1d'), fill=I('#8e44ad'))
+p2 <- qplot(x = log10(friend_count+1), data = pf, binwidth = 0.05, color = I('#1e1d1d'), fill=I('#8e44ad'))
+p3 <- qplot(x = sqrt(friend_count), data = pf, binwidth = 1, color = I('#1e1d1d'), fill=I('#8e44ad'))
+grid.arrange(p1,p2,p3)
+```
+## Another way pf transforming the data
+
+Using the ggplot function we can add layers of scale to a common plot
+```{r}
+q1 <- ggplot(aes(x = friend_count), data = pf) + geom_histogram()
+q2 <- q1 + scale_x_log10()
+q3 <- q1 + scale_x_sqrt()
+grid.arrange(q1,q2,q3, ncol=1)
+
+```
+## Frequency Polygons
+Let us compare distributions - curve drawn connecting the counts in a histogram
+
+```{r}
+qplot(friend_count, data = subset(pf, !(is.na(gender))), binwidth = 10, geom = 'freqpoly', color = gender) +
+  scale_x_continuous(limits = c(0,1000), breaks = seq(0,1000,100))
+
+```
+
+
+```{r}
+qplot(x = www_likes, data = subset(pf, !(is.na(gender))),
+      geom = 'freqpoly', color = gender) +
+  scale_x_continuous() +
+  scale_x_log10()
+
+```
+# Likes on the web
+```{r}
+by(pf$www_likes, pf$gender, sum)
+```
+Evident from the command - males likes are less than females
+
+## BOX PLOTS
+To see the difference between the distributions
+```{r}
+qplot(x = gender,
+      y = friend_count, 
+      data = subset(pf, !(is.na(gender))),
+      geom = "boxplot"
+      )
+```
+
+```{r}
+qplot(x = gender,
+      y = friend_count, 
+      data = subset(pf, !(is.na(gender))),
+      geom = "boxplot",
+      ylim = c(0,1000))
+
+# Another way
+qplot(x = gender,
+      y = friend_count, 
+      data = subset(pf, !(is.na(gender))),
+      geom = "boxplot") + scale_y_continuous(limits = c(0,1000))
+```
+Scale x continuous omits observations outside the defined limits, Thus use coord_cartesian  
+```{r}
+qplot(x = gender,
+      y = friend_count, 
+      data = subset(pf, !(is.na(gender))),
+      geom = "boxplot") + coord_cartesian(ylim = c(0,1000))
+
+```
+## Who initiated more friendships?
+```{r}
+qplot(x = gender,
+      y = friendships_initiated, 
+      data = subset(pf, !(is.na(gender))),
+      geom = "boxplot") + coord_cartesian(ylim = c(0,250))
+
+by(pf$friendships_initiated, pf$gender, summary)
+```
+
+
+
+## Getting Logical
+TO determine the number of users with mobile check in
+```{r}
+summary(pf$mobile_likes)
+pf$mobile_check_in <- ifelse(pf$mobile_likes>0,1,0)
+pf$mobile_check_in <- factor(pf$mobile_check_in)
+summary(pf$mobile_check_in)
+# WHat percent of Checkin using mobile
+sum(pf$mobile_check_in == 1)/length(pf$mobile_check_in)
+```
+
+

@@ -1,0 +1,53 @@
+---
+title: "Diamonds"
+author: "Sumit Kant"
+date: "13 September 2016"
+output: html_document
+---
+
+## Loading Diamonds dataset
+
+
+```{r}
+library(ggplot2) #must load the ggplot package first 
+data(diamonds) #loads the diamonds data set since it comes with the ggplot package 
+# Number of observations in the dataset
+nrow(diamonds)
+
+# Number of variables
+ncol(diamonds)
+
+# Number of ordered factors
+str(diamonds)
+
+#Best Color
+levels(diamonds$color)
+?diamonds
+```
+## Price Histogram
+```{r}
+library(ggplot2)
+qplot(x = price, data = diamonds, binwidth = 100)
+summary(diamonds$price)
+```
+
+## Diamond Counts
+```{r}
+p500 <- diamonds[diamonds$price < 500, ]
+p250 <- diamonds[diamonds$price < 250, ]
+p15000 <- diamonds[diamonds$price >= 15000, ]
+```
+## Cheaper Diamonds
+```{r}
+qplot(x = price, data = diamonds, binwidth = 10) +
+  scale_x_continuous(limits = c(500,750))
+```
+## Price by Cut Histograms
+```{r}
+
+qplot(x = price, data = diamonds, binwidth= 100) + facet_wrap(~cut)
+by(diamonds$price, diamonds$cut, max)
+by(diamonds$price, diamonds$cut, min)
+```
+## Scales and Multiple Histograms
+

@@ -1,0 +1,124 @@
+---
+title: "Problem Set 2 - Diamonds"
+author: "Sumit Kant"
+date: "25 March 2017"
+output: html_document
+---
+
+Observing the dataset
+
+```{r}
+setwd("D:/IIML/Crisp Analytics/Udacity/DAta analysis with R/")
+library(ggplot2) #must load the ggplot package first 
+data(diamonds) #loads the diamonds data set since it comes with the ggplot package 
+
+```
+
+## Number of Observations
+```{r}
+nrow(diamonds)
+```
+## Number of Variables
+```{r}
+ncol(diamonds)
+```
+## Number of Ordered factors
+```{r}
+str(diamonds) 
+```
+## Best Colour proxy
+```{r}
+levels(diamonds$color)
+# color: diamond colour, from J (worst) to D (best)
+?diamonds 
+```
+## Create a histogram of the price of all the diamonds in the diamond data set.
+
+```{r}
+qplot(x = price, data = diamonds, binwidth = 500)
+```
+## Summary Statistics
+```{r}
+summary(diamonds$price)
+```
+# Diamond Counts
+
+Diamonds costing less than 500 dollars
+```{r}
+nrow(diamonds[diamonds$price < 500,])
+```
+Diamonds costing less than 250 dollars
+```{r}
+nrow(diamonds[diamonds$price < 250,])
+```
+Diamonds costing greater than or equal to 15000 dollars
+```{r}
+nrow(diamonds[diamonds$price >= 15000,])
+```
+## Explore the largest peak in the price histogram you created earlier.
+
+```{r}
+qplot(x = price, data = diamonds, binwidth = 10) +
+  scale_x_continuous(limits = c(500,1000))
+```
+
+## Facet Wrap
+```{r}
+qplot(x = price, data = diamonds) + facet_wrap(~cut)
+```
+Which cut has the highest price diamond
+```{r}
+by(diamonds$price, diamonds$cut, max)
+```
+Lowest price diamond
+```{r}
+by(diamonds$price, diamonds$cut, min)
+```
+Lowest Median price by cut
+```{r}
+by(diamonds$price, diamonds$cut, median)
+```
+## changing y-axis for different histograms
+
+```{r}
+qplot(x = price, data = diamonds) + facet_wrap(~cut, scales = "free_y")
+ggsave("free_y_facetwrap_diamonds_by_Cut.png")
+```
+# Create a histogram of price per carat
+```{r}
+qplot(x = log10(price/carat), data = diamonds) + facet_wrap(~cut, scales = "free_y")
+```
+
+# Investigating the price of diamonds by color
+```{r}
+by(diamonds$price, diamonds$color, summary)
+boxplot(price~color,data=diamonds, main="Price by color", xlab="Color", ylab="Price")
+ggplot(diamonds, aes(x=color, y=price, fill=color)) + geom_boxplot()
+ggsave("price_by_color.png")
+```
+
+# Investigating the price of diamonds by clarity
+```{r}
+by(diamonds$price, diamonds$clarity, summary)
+boxplot(price~clarity,data=diamonds, main="Price by clarity", xlab="clarity", ylab="Price")
+ggplot(diamonds, aes(x=clarity, y=price, fill=clarity)) + geom_boxplot()
+ggsave("price_by_clarity.png")
+```
+
+## Determining IQR
+```{r}
+by(diamonds$price, diamonds$color, IQR)
+```
+
+# PRICE/CARAT across colors
+```{r}
+ggplot(diamonds, aes(x=color, y=price/carat, fill=color)) + geom_boxplot()
+ggsave("price_per_carat_by_color.png")
+```
+# Investigating the weight of diamonds
+```{r}
+qplot(carat, data = diamonds, geom = "freqpoly", binwidth=0.001)
+ggsave("caratcount.png")
+```
+
+
